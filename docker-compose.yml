@@ -1,0 +1,35 @@
+version: '3'
+
+volumes:
+  local_postgres_data: {}
+
+services:
+  django:
+    build:
+      dockerfile: Dockerfile
+    image: ml_django
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    command: /app/start
+
+  postgres:
+    image: postgres
+    container_name: ml_postgres
+    healthcheck:
+      test: pg_isready
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "8001:5432"
+    volumes:
+      - local_postgres_data:/var/lib/postgresql/data
+    env_file:
+      - .env
