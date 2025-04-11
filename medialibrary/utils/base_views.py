@@ -10,7 +10,7 @@ class DynamicResultsSetPagination(PageNumberPagination):
     max_page_size = 200
 
 
-class ActionBasedPermission(permissions.AllowAny):
+class ActionBasedPermission(permissions.IsAuthenticated):
     def has_permission(self, request, view):
         custom_permission = getattr(view, "action_permissions", {}).get(view.action)
         if not custom_permission:

@@ -17,18 +17,25 @@ class PersonSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DeveloperSerializer(serializers.ModelSerializer):
+class StaffSerializer(serializers.ModelSerializer):
+    person = ReadablePKRF(PersonSerializer)
+
     class Meta:
-        model = catalog_m.Developer
+        model = catalog_m.Staff
+        fields = "__all__"
+
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = catalog_m.Company
         fields = "__all__"
 
 
 class MovieSerializer(serializers.ModelSerializer):
     genres = MediaGenreSerializer(many=True, read_only=True)
-    directors = PersonSerializer(many=True, read_only=True)
-    actors = PersonSerializer(many=True, read_only=True)
-    country = ReadablePKRF(common_s.CountrySerializer)
+    company = ReadablePKRF(CompanySerializer)
     poster = ReadablePKRF(common_s.PhotoSerializer)
+    staff = StaffSerializer(many=True, read_only=True)
 
     class Meta:
         model = catalog_m.Movie
@@ -37,9 +44,7 @@ class MovieSerializer(serializers.ModelSerializer):
 
 class SeriesSerializer(serializers.ModelSerializer):
     genres = MediaGenreSerializer(many=True, read_only=True)
-    directors = PersonSerializer(many=True, read_only=True)
-    actors = PersonSerializer(many=True, read_only=True)
-    country = ReadablePKRF(common_s.CountrySerializer)
+    company = ReadablePKRF(CompanySerializer)
     poster = ReadablePKRF(common_s.PhotoSerializer)
 
     class Meta:
@@ -49,19 +54,9 @@ class SeriesSerializer(serializers.ModelSerializer):
 
 class GameSerializer(serializers.ModelSerializer):
     genres = MediaGenreSerializer(many=True, read_only=True)
-    developer = ReadablePKRF(DeveloperSerializer)
+    company = ReadablePKRF(CompanySerializer)
     poster = ReadablePKRF(common_s.PhotoSerializer)
 
     class Meta:
         model = catalog_m.Game
-        fields = "__all__"
-
-
-class AnimeSerializer(serializers.ModelSerializer):
-    genres = MediaGenreSerializer(many=True, read_only=True)
-    directors = PersonSerializer(many=True, read_only=True)
-    poster = ReadablePKRF(common_s.PhotoSerializer)
-
-    class Meta:
-        model = catalog_m.Anime
         fields = "__all__"

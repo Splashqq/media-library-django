@@ -6,19 +6,17 @@ import medialibrary.common.serializers as common_s
 from medialibrary.utils.base_views import BaseViewSet
 
 
-class CountryVS(BaseViewSet):
-    queryset = common_m.Country.objects.all()
-    serializer_class = common_s.CountrySerializer
-    permission_classes = [permissions.AllowAny]
-
-
 class PhotoVS(BaseViewSet):
     queryset = common_m.Photo.objects.all()
     serializer_class = common_s.PhotoSerializer
 
+    action_permissions = {
+        "list": permissions.AllowAny,
+        "retrieve": permissions.AllowAny,
+    }
+
 
 router = DefaultRouter()
-router.register("country", CountryVS)
 router.register("photo", PhotoVS)
 
 common_urls = router.urls

@@ -15,8 +15,8 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
     queryset = users_m.User.objects.all()
     serializer_class = users_s.UserSerializer
     action_permissions = {
-        "update": permissions.IsAuthenticated,
-        "partial_update": permissions.IsAuthenticated,
+        "login": permissions.AllowAny,
+        "register": permissions.AllowAny,
     }
 
     def get_serializer_class(self):

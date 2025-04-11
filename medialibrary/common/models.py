@@ -6,17 +6,6 @@ import medialibrary.common.constants as common_c
 from medialibrary.utils.models import TimeStampedModel
 
 
-class Country(TimeStampedModel):
-    name = models.CharField(max_length=255, unique=True)
-
-    class Meta:
-        verbose_name = "Country"
-        verbose_name_plural = "Countries"
-
-    def __str__(self):
-        return self.name
-
-
 def photo_upload_to(instance, filename, *args, **kwargs) -> str:
     ext = filename.split(".")[-1]
     path = instance.get_type_display()
@@ -39,13 +28,6 @@ class Photo(TimeStampedModel):
     )
     game = models.ForeignKey(
         "catalog.Game",
-        on_delete=models.SET_NULL,
-        related_name="photos",
-        blank=True,
-        null=True,
-    )
-    anime = models.ForeignKey(
-        "catalog.Anime",
         on_delete=models.SET_NULL,
         related_name="photos",
         blank=True,

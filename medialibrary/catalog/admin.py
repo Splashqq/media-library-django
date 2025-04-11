@@ -10,7 +10,12 @@ class MediaGenreAdmin(admin.ModelAdmin):
 
 @admin.register(catalog_m.Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ["first_name", "last_name", "type"]
+    list_display = ["name"]
+
+
+@admin.register(catalog_m.Staff)
+class StaffAdmin(admin.ModelAdmin):
+    list_display = ["person", "movie", "series", "role"]
 
 
 @admin.register(catalog_m.Movie)
@@ -20,29 +25,22 @@ class MovieAdmin(admin.ModelAdmin):
     ]
 
 
-@admin.register(catalog_m.Developer)
-class DeveloperAdmin(admin.ModelAdmin):
+@admin.register(catalog_m.Company)
+class CompanyAdmin(admin.ModelAdmin):
     list_display = [
         "name",
     ]
 
 
-@admin.register(catalog_m.Game)
-class GameAdmin(admin.ModelAdmin):
-    list_display = [
-        "title",
-    ]
-
-
-@admin.register(catalog_m.Anime)
-class AnimeAdmin(admin.ModelAdmin):
-    list_display = [
-        "title",
-    ]
-
-
 @admin.register(catalog_m.Series)
 class SeriesAdmin(admin.ModelAdmin):
+    list_display = [
+        "title",
+    ]
+
+
+@admin.register(catalog_m.Game)
+class GameAdmin(admin.ModelAdmin):
     list_display = [
         "title",
     ]

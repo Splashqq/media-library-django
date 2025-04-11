@@ -1,4 +1,5 @@
 import os
+import random
 import sys
 from datetime import timedelta
 from random import choice, sample
@@ -14,36 +15,14 @@ import medialibrary.catalog.models as catalog_m
 import medialibrary.common.models as common_m
 
 
-def create_countries():
-    countries = []
+def create_persons():
+    persons = []
     for i in range(1, 10):
-        c, _ = common_m.Country.objects.get_or_create(name=f"city{i}")
-        countries.append(c)
-    return countries
-
-
-def create_actors():
-    actors = []
-    for i in range(1, 10):
-        a, _ = catalog_m.Person.objects.get_or_create(
-            first_name=f"first_name_actor{i}",
-            last_name=f"last_name_actor{i}",
-            type=catalog_c.PERSON_TYPE_ACTOR,
+        p, _ = catalog_m.Person.objects.get_or_create(
+            name=f"name{i}",
         )
-        actors.append(a)
-    return actors
-
-
-def create_directors():
-    directors = []
-    for i in range(1, 4):
-        d, _ = catalog_m.Person.objects.get_or_create(
-            first_name=f"first_name_director{i}",
-            last_name=f"last_name_director{i}",
-            type=catalog_c.PERSON_TYPE_DIRECTOR,
-        )
-        directors.append(d)
-    return directors
+        persons.append(p)
+    return persons
 
 
 def create_genres():
@@ -54,78 +33,78 @@ def create_genres():
     return genres
 
 
-def create_developers():
-    developers = []
+def create_companies():
+    companies = []
     for i in range(1, 5):
-        d, _ = catalog_m.Developer.objects.get_or_create(name=f"developer{i}")
-        developers.append(d)
-    return developers
+        c, _ = catalog_m.Company.objects.get_or_create(name=f"company{i}")
+        companies.append(c)
+    return companies
 
 
-def create_movies(countries, actors, directors, genres):
+def create_movies(companies, genres):
+    movies = []
     for i in range(1, 10):
         m, _ = catalog_m.Movie.objects.get_or_create(
             title=f"movie{i}",
             description=f"movie{i}",
             release_date="2024-08-04",
             duration=timedelta(hours=2),
-            country=choice(countries),
-            avg_rating=5,
+            company=choice(companies),
         )
         m.genres.set(sample(genres, 3))
-        m.directors.set(sample(directors, 2))
-        m.actors.set(sample(actors, 3))
+        movies.append(m)
+    return movies
 
 
-def create_games(developers, genres):
-    for i in range(1, 10):
-        g, _ = catalog_m.Game.objects.get_or_create(
-            title=f"game{i}",
-            description=f"game{i}",
-            release_date="2024-08-04",
-            developer=choice(developers),
-            avg_rating=5,
-        )
-        g.genres.set(sample(genres, 3))
-
-
-def create_animes(directors, genres):
-    for i in range(1, 10):
-        a, _ = catalog_m.Anime.objects.get_or_create(
-            title=f"anime{i}",
-            description=f"anime{i}",
-            release_date="2024-08-04",
-            episodes=15,
-            avg_rating=5,
-        )
-        a.genres.set(sample(genres, 3))
-        a.directors.set(sample(directors, 2))
-
-
-def create_series(countries, actors, directors, genres):
+def create_series(companies, genres):
+    series = []
     for i in range(1, 10):
         s, _ = catalog_m.Series.objects.get_or_create(
             title=f"series{i}",
             description=f"series{i}",
             release_date="2024-08-04",
-            country=choice(countries),
+            type=choice(catalog_c.SERIES_TYPES)[0],
+            episode_duration=timedelta(minutes=20),
             episodes=15,
-            avg_rating=5,
+            company=choice(companies),
         )
         s.genres.set(sample(genres, 3))
-        s.directors.set(sample(directors, 2))
-        s.actors.set(sample(actors, 3))
+        series.append(s)
+    return series
+
+
+def create_games(companies, genres):
+    for i in range(1, 10):
+        g, _ = catalog_m.Game.objects.get_or_create(
+            title=f"game{i}",
+            description=f"game{i}",
+            release_date="2024-08-04",
+            company=choice(companies),
+        )
+        g.genres.set(sample(genres, 3))
+
+
+def create_staffs(persons, movies, series):
+    for person in persons:
+        catalog_m.Staff.objects.create(
+            person=person,
+            movie=choice(movies),
+            role=choice(catalog_c.STAFF_ROLES)[0],
+        )
+        catalog_m.Staff.objects.create(
+            person=person,
+            series=choice(series),
+            role=choice(catalog_c.STAFF_ROLES)[0],
+        )
 
 
 if __name__ == "__main__":
     print("Creating data...")
-    countries = create_countries()
-    actors = create_actors()
-    directors = create_directors()
+    persons = create_persons()
     genres = create_genres()
-    developers = create_developers()
-    create_movies(countries, actors, directors, genres)
-    create_animes(directors, genres)
-    create_games(developers, genres)
-    create_series(countries, actors, directors, genres)
+    companies = create_companies()
+    movies = create_movies(companies, genres)
+    series = create_series(companies, genres)
+    create_games(companies, genres)
+    create_staffs(persons, movies, series)
     print("Done!")
