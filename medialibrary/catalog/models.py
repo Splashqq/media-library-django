@@ -1,3 +1,4 @@
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 import medialibrary.catalog.constants as catalog_c
@@ -26,14 +27,14 @@ class Staff(TimeStampedModel):
     movie = models.ForeignKey(
         "catalog.Movie",
         on_delete=models.SET_NULL,
-        related_name="movie",
+        related_name="movie_staff",
         null=True,
         blank=True,
     )
     series = models.ForeignKey(
         "catalog.Series",
         on_delete=models.SET_NULL,
-        related_name="series",
+        related_name="series_staff",
         null=True,
         blank=True,
     )
@@ -97,6 +98,27 @@ class Movie(TimeStampedModel):
         return self.title
 
 
+class MovieRating(TimeStampedModel):
+    movie = models.ForeignKey(
+        "catalog.Movie", on_delete=models.CASCADE, related_name="movie"
+    )
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ],
+    )
+
+    class Meta:
+        verbose_name = "Movie Rating"
+        verbose_name_plural = "Movie Ratings"
+        unique_together = ("movie", "user")
+
+    def __str__(self):
+        return self.movie.title
+
+
 class Series(TimeStampedModel):
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
@@ -127,6 +149,27 @@ class Series(TimeStampedModel):
         return self.title
 
 
+class SeriesRating(TimeStampedModel):
+    series = models.ForeignKey(
+        "catalog.Series", on_delete=models.CASCADE, related_name="series"
+    )
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ],
+    )
+
+    class Meta:
+        verbose_name = "Series Rating"
+        verbose_name_plural = "Series Ratings"
+        unique_together = ("series", "user")
+
+    def __str__(self):
+        return self.series.title
+
+
 class Game(TimeStampedModel):
     title = models.CharField(max_length=255, unique=True)
     description = models.TextField()
@@ -149,3 +192,24 @@ class Game(TimeStampedModel):
 
     def __str__(self):
         return self.title
+
+
+class GameRating(TimeStampedModel):
+    game = models.ForeignKey(
+        "catalog.Game", on_delete=models.CASCADE, related_name="game"
+    )
+    user = models.ForeignKey("users.User", on_delete=models.CASCADE)
+    rating = models.IntegerField(
+        validators=[
+            MinValueValidator(1),
+            MaxValueValidator(10),
+        ],
+    )
+
+    class Meta:
+        verbose_name = "Game Rating"
+        verbose_name_plural = "Game Ratings"
+        unique_together = ("game", "user")
+
+    def __str__(self):
+        return self.game.title

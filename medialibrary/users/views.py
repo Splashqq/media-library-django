@@ -3,6 +3,7 @@ from django.utils import timezone
 from rest_framework import mixins, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
+from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
@@ -53,6 +54,11 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
         return Response({"token": token.key})
+
+    def perform_update(self, serializer):
+        if serializer.instance != self.request.user:
+            raise APIException("Can't edit profile")
+        serializer.save(user=self.request.user)
 
 
 router = DefaultRouter()

@@ -1,8 +1,7 @@
 import os
-import random
 import sys
 from datetime import timedelta
-from random import choice, sample
+from random import choice, randint, sample
 
 import django
 
@@ -12,7 +11,22 @@ django.setup()
 
 import medialibrary.catalog.constants as catalog_c
 import medialibrary.catalog.models as catalog_m
-import medialibrary.common.models as common_m
+import medialibrary.users.models as users_m
+
+
+def create_users():
+    users = []
+    for i in range(1, 7):
+        try:
+            u = users_m.User.objects.create_user(
+                email=f"email{i}@gmail.com",
+                username=f"username{i}",
+                password=f"password{i}",
+            )
+            users.append(u)
+        except:
+            continue
+    return users
 
 
 def create_persons():
@@ -74,6 +88,7 @@ def create_series(companies, genres):
 
 
 def create_games(companies, genres):
+    games = []
     for i in range(1, 10):
         g, _ = catalog_m.Game.objects.get_or_create(
             title=f"game{i}",
@@ -82,6 +97,8 @@ def create_games(companies, genres):
             company=choice(companies),
         )
         g.genres.set(sample(genres, 3))
+        games.append(g)
+    return games
 
 
 def create_staffs(persons, movies, series):
@@ -98,13 +115,30 @@ def create_staffs(persons, movies, series):
         )
 
 
+def create_ratings(users, movies, series, game):
+    for movie in movies:
+        m, _ = catalog_m.MovieRating.objects.get_or_create(
+            movie=movie, user=choice(users), rating=randint(1, 10)
+        )
+    for se in series:
+        s, _ = catalog_m.SeriesRating.objects.get_or_create(
+            series=se, user=choice(users), rating=randint(1, 10)
+        )
+    for game in games:
+        g, _ = catalog_m.GameRating.objects.get_or_create(
+            game=game, user=choice(users), rating=randint(1, 10)
+        )
+
+
 if __name__ == "__main__":
     print("Creating data...")
+    users = create_users()
     persons = create_persons()
     genres = create_genres()
     companies = create_companies()
     movies = create_movies(companies, genres)
     series = create_series(companies, genres)
-    create_games(companies, genres)
+    games = create_games(companies, genres)
     create_staffs(persons, movies, series)
+    create_ratings(users, movies, series, games)
     print("Done!")

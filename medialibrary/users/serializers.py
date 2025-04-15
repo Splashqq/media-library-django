@@ -6,10 +6,7 @@ import medialibrary.users.models as users_m
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = users_m.User
-        fields = (
-            "email",
-            "username",
-        )
+        fields = ("email", "username", "avatar")
         read_only_fields = ("email",)
 
 
