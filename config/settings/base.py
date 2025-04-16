@@ -4,7 +4,7 @@ import sys
 import environ
 
 ROOT_DIR = environ.Path(__file__) - 3
-APPS_DIR = ROOT_DIR.path("media-library")
+APPS_DIR = ROOT_DIR.path("medialibrary")
 STATIC_ROOT = os.path.join(ROOT_DIR, "staticfiles")
 
 env = environ.Env()
@@ -43,7 +43,7 @@ THIRD_PARTY_APPS = [
     "drf_spectacular",
 ]
 
-LOCAL_APPS = ["medialibrary.users"]
+LOCAL_APPS = ["medialibrary.catalog", "medialibrary.common", "medialibrary.users"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
 
@@ -105,6 +105,7 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = "users.User"
 
 REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "DEFAULT_AUTHENTICATION_CLASSES": (
         "rest_framework.authentication.TokenAuthentication",
     ),
