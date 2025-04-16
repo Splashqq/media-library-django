@@ -40,3 +40,10 @@ class Photo(TimeStampedModel):
         blank=True,
         null=True,
     )
+
+    class Meta:
+        verbose_name = "Photo"
+        verbose_name_plural = "Photos"
+
+    def __str__(self):
+        return f"Photo {self.pk}"

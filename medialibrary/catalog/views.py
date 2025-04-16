@@ -1,4 +1,5 @@
 from django.db.models import Avg, Prefetch
+from django.db.models.functions import Coalesce, Round
 from rest_framework import mixins, permissions
 from rest_framework.exceptions import APIException
 from rest_framework.routers import DefaultRouter
@@ -40,7 +41,7 @@ class MovieVS(BaseViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         return (
-            qs.annotate(rating=Avg("movie__rating"))
+            qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
                 "staff",
@@ -70,7 +71,6 @@ class MovieRatingVS(
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.prefetch_related(
-            "user",
             Prefetch(
                 "movie",
                 queryset=catalog_m.Movie.objects.all()
@@ -112,7 +112,7 @@ class SeriesVS(BaseViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         return (
-            qs.annotate(rating=Avg("series__rating"))
+            qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
                 "staff",
@@ -142,7 +142,6 @@ class SeriesRatingVS(
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.prefetch_related(
-            "user",
             Prefetch(
                 "series",
                 queryset=catalog_m.Series.objects.all()
@@ -194,7 +193,7 @@ class GameVS(BaseViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         return (
-            qs.annotate(rating=Avg("game__rating"))
+            qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related("genres")
         )
@@ -217,7 +216,6 @@ class GameRatingVS(
     def get_queryset(self):
         qs = super().get_queryset()
         return qs.prefetch_related(
-            "user",
             Prefetch(
                 "game",
                 queryset=catalog_m.Game.objects.all()

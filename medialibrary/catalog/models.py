@@ -21,8 +21,6 @@ class Staff(TimeStampedModel):
         "catalog.Person",
         on_delete=models.CASCADE,
         related_name="staff_person",
-        null=True,
-        blank=True,
     )
     movie = models.ForeignKey(
         "catalog.Movie",
@@ -43,6 +41,15 @@ class Staff(TimeStampedModel):
     class Meta:
         verbose_name = "Staff"
         verbose_name_plural = "Staff"
+        constraints = [
+            models.CheckConstraint(
+                check=(
+                    models.Q(movie__isnull=False, series__isnull=True)
+                    | models.Q(movie__isnull=True, series__isnull=False)
+                ),
+                name="exactly_one_of_movie_series_game",
+            )
+        ]
 
     def __str__(self):
         return f"{self.person}"
@@ -71,7 +78,7 @@ class MediaGenre(TimeStampedModel):
 
 
 class Movie(TimeStampedModel):
-    title = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255)
     description = models.TextField()
     release_date = models.DateField(blank=True, null=True)
     duration = models.DurationField(blank=True, null=True)
@@ -82,12 +89,12 @@ class Movie(TimeStampedModel):
         null=True,
         blank=True,
     )
-    genres = models.ManyToManyField("catalog.MediaGenre", related_name="movie_genres")
+    genres = models.ManyToManyField("catalog.MediaGenre", related_name="movies")
     company = models.ForeignKey(
         "catalog.Company", on_delete=models.SET_NULL, null=True, blank=True
     )
     staff = models.ManyToManyField(
-        "catalog.Person", through="catalog.Staff", related_name="movie_staff"
+        "catalog.Person", through="catalog.Staff", related_name="movies"
     )
 
     class Meta:
@@ -100,7 +107,7 @@ class Movie(TimeStampedModel):
 
 class MovieRating(TimeStampedModel):
     movie = models.ForeignKey(
-        "catalog.Movie", on_delete=models.CASCADE, related_name="movie"
+        "catalog.Movie", on_delete=models.CASCADE, related_name="ratings"
     )
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     rating = models.IntegerField(
@@ -120,7 +127,7 @@ class MovieRating(TimeStampedModel):
 
 
 class Series(TimeStampedModel):
-    title = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255)
     description = models.TextField()
     release_date = models.DateField(blank=True, null=True)
     type = models.IntegerField(choices=catalog_c.SERIES_TYPES, null=True, blank=True)
@@ -133,12 +140,12 @@ class Series(TimeStampedModel):
         null=True,
         blank=True,
     )
-    genres = models.ManyToManyField("catalog.MediaGenre", related_name="series_genres")
+    genres = models.ManyToManyField("catalog.MediaGenre", related_name="series")
     company = models.ForeignKey(
         "catalog.Company", on_delete=models.SET_NULL, null=True, blank=True
     )
     staff = models.ManyToManyField(
-        "catalog.Person", through="catalog.Staff", related_name="series_staff"
+        "catalog.Person", through="catalog.Staff", related_name="series"
     )
 
     class Meta:
@@ -151,7 +158,7 @@ class Series(TimeStampedModel):
 
 class SeriesRating(TimeStampedModel):
     series = models.ForeignKey(
-        "catalog.Series", on_delete=models.CASCADE, related_name="series"
+        "catalog.Series", on_delete=models.CASCADE, related_name="ratings"
     )
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     rating = models.IntegerField(
@@ -171,7 +178,7 @@ class SeriesRating(TimeStampedModel):
 
 
 class Game(TimeStampedModel):
-    title = models.CharField(max_length=255, unique=True)
+    title = models.CharField(max_length=255)
     description = models.TextField()
     release_date = models.DateField(null=True, blank=True)
     poster = models.ForeignKey(
@@ -181,7 +188,7 @@ class Game(TimeStampedModel):
         null=True,
         blank=True,
     )
-    genres = models.ManyToManyField("catalog.MediaGenre", related_name="game_genres")
+    genres = models.ManyToManyField("catalog.MediaGenre", related_name="games")
     company = models.ForeignKey(
         "catalog.Company", on_delete=models.SET_NULL, null=True, blank=True
     )
@@ -196,7 +203,7 @@ class Game(TimeStampedModel):
 
 class GameRating(TimeStampedModel):
     game = models.ForeignKey(
-        "catalog.Game", on_delete=models.CASCADE, related_name="game"
+        "catalog.Game", on_delete=models.CASCADE, related_name="ratings"
     )
     user = models.ForeignKey("users.User", on_delete=models.CASCADE)
     rating = models.IntegerField(

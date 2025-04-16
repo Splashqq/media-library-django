@@ -12,7 +12,7 @@ class User(AbstractUser, TimeStampedModel):
     username = models.CharField(max_length=45, unique=True)
     is_staff = models.BooleanField(default=False)
     avatar = models.ForeignKey(
-        "common.Photo", on_delete=models.SET_NULL, null=True, related_name="user_avatar"
+        "common.Photo", on_delete=models.SET_NULL, null=True, related_name="users"
     )
 
     USERNAME_FIELD = "email"
