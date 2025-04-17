@@ -7,6 +7,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
+import medialibrary.users.filters as users_f
 import medialibrary.users.models as users_m
 import medialibrary.users.serializers as users_s
 from medialibrary.utils.base_views import BaseViewSet
@@ -15,6 +16,7 @@ from medialibrary.utils.base_views import BaseViewSet
 class UserVS(mixins.UpdateModelMixin, BaseViewSet):
     queryset = users_m.User.objects.all()
     serializer_class = users_s.UserSerializer
+    filterset_class = users_f.UserFilter
     action_permissions = {
         "login": permissions.AllowAny,
         "register": permissions.AllowAny,

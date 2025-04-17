@@ -4,6 +4,7 @@ from rest_framework import mixins, permissions
 from rest_framework.exceptions import APIException
 from rest_framework.routers import DefaultRouter
 
+import medialibrary.catalog.filters as catalog_f
 import medialibrary.catalog.models as catalog_m
 import medialibrary.catalog.serializers as catalog_s
 from medialibrary.utils.base_views import BaseViewSet
@@ -22,6 +23,7 @@ class MediaGenreVS(BaseViewSet):
 class PersonVS(BaseViewSet):
     queryset = catalog_m.Person.objects.all()
     serializer_class = catalog_s.PersonSerializer
+    filterset_class = catalog_f.PersonFilter
 
     action_permissions = {
         "list": permissions.AllowAny,
@@ -32,6 +34,7 @@ class PersonVS(BaseViewSet):
 class MovieVS(BaseViewSet):
     queryset = catalog_m.Movie.objects.all()
     serializer_class = catalog_s.MovieSerializer
+    filterset_class = catalog_f.MovieFilter
 
     action_permissions = {
         "list": permissions.AllowAny,
@@ -103,6 +106,7 @@ class MovieRatingVS(
 class SeriesVS(BaseViewSet):
     queryset = catalog_m.Series.objects.all()
     serializer_class = catalog_s.SeriesSerializer
+    filterset_class = catalog_f.SeriesFilter
 
     action_permissions = {
         "list": permissions.AllowAny,
@@ -184,6 +188,7 @@ class CompanyVS(BaseViewSet):
 class GameVS(BaseViewSet):
     queryset = catalog_m.Game.objects.all()
     serializer_class = catalog_s.GameSerializer
+    filterset_class = catalog_f.GameFilter
 
     action_permissions = {
         "list": permissions.AllowAny,
