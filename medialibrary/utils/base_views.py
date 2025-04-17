@@ -1,5 +1,6 @@
 import inspect
 
+from django_filters import rest_framework as filters
 from rest_framework import mixins, permissions, viewsets
 from rest_framework.pagination import PageNumberPagination
 
@@ -27,6 +28,7 @@ class BaseViewSet(
 ):
     permission_classes = [ActionBasedPermission]
     pagination_class = DynamicResultsSetPagination
+    filter_backends = (filters.DjangoFilterBackend,)
 
     def get_serializer_context(self):
         context = super().get_serializer_context()
