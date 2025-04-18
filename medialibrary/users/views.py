@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate
+from django.db.models import Prefetch
 from django.utils import timezone
 from rest_framework import mixins, permissions, status
 from rest_framework.authtoken.models import Token
@@ -7,6 +8,7 @@ from rest_framework.exceptions import APIException
 from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
+import medialibrary.catalog.models as catalog_m
 import medialibrary.users.filters as users_f
 import medialibrary.users.models as users_m
 import medialibrary.users.serializers as users_s
@@ -63,7 +65,153 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
         serializer.save(user=self.request.user)
 
 
+class UserMovieCollectionVS(
+    mixins.UpdateModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    BaseViewSet,
+):
+    queryset = users_m.UserMovieCollection.objects.all()
+    serializer_class = users_s.UserMovieCollectionSerializer
+
+    action_permissions = {
+        "list": permissions.AllowAny,
+        "retrieve": permissions.AllowAny,
+    }
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.prefetch_related(
+            Prefetch(
+                "movie",
+                queryset=catalog_m.Movie.objects.all()
+                .select_related("poster", "company")
+                .prefetch_related(
+                    "staff",
+                    "genres",
+                    Prefetch(
+                        "movie_staff",
+                        queryset=catalog_m.Staff.objects.all().select_related("person"),
+                    ),
+                ),
+            ),
+        )
+
+    def perform_create(self, serializer):
+        if users_m.UserMovieCollection.objects.filter(
+            user=self.request.user, movie=serializer.validated_data["movie"]
+        ).exists():
+            raise APIException("Movie already exists in collection")
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        if serializer.instance.user != self.request.user:
+            raise APIException("Can't edit collection")
+        serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise APIException("Can't delete collection")
+        instance.delete()
+
+
+class UserSeriesCollectionVS(
+    mixins.UpdateModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    BaseViewSet,
+):
+    queryset = users_m.UserSeriesCollection.objects.all()
+    serializer_class = users_s.UserSeriesCollectionSerializer
+
+    action_permissions = {
+        "list": permissions.AllowAny,
+        "retrieve": permissions.AllowAny,
+    }
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.prefetch_related(
+            Prefetch(
+                "series",
+                queryset=catalog_m.Series.objects.all()
+                .select_related("poster", "company")
+                .prefetch_related(
+                    "staff",
+                    "genres",
+                    Prefetch(
+                        "series_staff",
+                        queryset=catalog_m.Staff.objects.all().select_related("person"),
+                    ),
+                ),
+            ),
+        )
+
+    def perform_create(self, serializer):
+        if users_m.UserSeriesCollection.objects.filter(
+            user=self.request.user, series=serializer.validated_data["series"]
+        ).exists():
+            raise APIException("Series already exists in collection")
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        if serializer.instance.user != self.request.user:
+            raise APIException("Can't edit collection")
+        serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise APIException("Can't delete collection")
+        instance.delete()
+
+
+class UserGameCollectionVS(
+    mixins.UpdateModelMixin,
+    mixins.CreateModelMixin,
+    mixins.DestroyModelMixin,
+    BaseViewSet,
+):
+    queryset = users_m.UserGameCollection.objects.all()
+    serializer_class = users_s.UserGameCollectionSerializer
+
+    action_permissions = {
+        "list": permissions.AllowAny,
+        "retrieve": permissions.AllowAny,
+    }
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.prefetch_related(
+            Prefetch(
+                "game",
+                queryset=catalog_m.Game.objects.all()
+                .select_related("poster", "company")
+                .prefetch_related("genres"),
+            ),
+        )
+
+    def perform_create(self, serializer):
+        if users_m.UserGameCollection.objects.filter(
+            user=self.request.user, game=serializer.validated_data["game"]
+        ).exists():
+            raise APIException("Game already exists in collection")
+        serializer.save(user=self.request.user)
+
+    def perform_update(self, serializer):
+        if serializer.instance.user != self.request.user:
+            raise APIException("Can't edit collection")
+        serializer.save(user=self.request.user)
+
+    def perform_destroy(self, instance):
+        if instance.user != self.request.user:
+            raise APIException("Can't delete collection")
+        instance.delete()
+
+
 router = DefaultRouter()
 router.register("user", UserVS)
+router.register("movie_collection", UserMovieCollectionVS)
+router.register("series_collection", UserSeriesCollectionVS)
+router.register("game_collection", UserGameCollectionVS)
 
 users_urls = router.urls

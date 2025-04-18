@@ -90,6 +90,10 @@ class MovieRatingVS(
         )
 
     def perform_create(self, serializer):
+        if catalog_m.MovieRating.objects.filter(
+            user=self.request.user, movie=serializer.validated_data["movie"]
+        ).exists():
+            raise APIException("Movie rating exists")
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
@@ -162,6 +166,10 @@ class SeriesRatingVS(
         )
 
     def perform_create(self, serializer):
+        if catalog_m.SeriesRating.objects.filter(
+            user=self.request.user, series=serializer.validated_data["series"]
+        ).exists():
+            raise APIException("Series rating exists")
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):
@@ -230,6 +238,10 @@ class GameRatingVS(
         )
 
     def perform_create(self, serializer):
+        if catalog_m.GameRating.objects.filter(
+            user=self.request.user, game=serializer.validated_data["game"]
+        ).exists():
+            raise APIException("Game rating exists")
         serializer.save(user=self.request.user)
 
     def perform_update(self, serializer):

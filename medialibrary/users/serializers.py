@@ -1,6 +1,8 @@
 from rest_framework import serializers
 
+import medialibrary.catalog.serializers as catalog_s
 import medialibrary.users.models as users_m
+from medialibrary.utils.drf import ReadablePKRF
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -40,3 +42,30 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         return user
+
+
+class UserMovieCollectionSerializer(serializers.ModelSerializer):
+    movie = ReadablePKRF(catalog_s.MovieSerializer)
+
+    class Meta:
+        model = users_m.UserMovieCollection
+        fields = "__all__"
+        read_only_fields = ("user",)
+
+
+class UserSeriesCollectionSerializer(serializers.ModelSerializer):
+    series = ReadablePKRF(catalog_s.SeriesSerializer)
+
+    class Meta:
+        model = users_m.UserSeriesCollection
+        fields = "__all__"
+        read_only_fields = ("user",)
+
+
+class UserGameCollectionSerializer(serializers.ModelSerializer):
+    game = ReadablePKRF(catalog_s.GameSerializer)
+
+    class Meta:
+        model = users_m.UserGameCollection
+        fields = "__all__"
+        read_only_fields = ("user",)

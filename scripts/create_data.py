@@ -11,6 +11,7 @@ django.setup()
 
 import medialibrary.catalog.constants as catalog_c
 import medialibrary.catalog.models as catalog_m
+import medialibrary.users.constants as users_c
 import medialibrary.users.models as users_m
 
 
@@ -130,6 +131,27 @@ def create_ratings(users, movies, series, game):
         )
 
 
+def create_collections(users, movies, series, game):
+    for movie in movies:
+        m, _ = users_m.UserMovieCollection.objects.get_or_create(
+            movie=movie,
+            user=choice(users),
+            status=choice(users_c.USER_MEDIA_COLLECTION_STATUSES)[0],
+        )
+    for se in series:
+        s, _ = users_m.UserSeriesCollection.objects.get_or_create(
+            series=se,
+            user=choice(users),
+            status=choice(users_c.USER_MEDIA_COLLECTION_STATUSES)[0],
+        )
+    for game in games:
+        g, _ = users_m.UserGameCollection.objects.get_or_create(
+            game=game,
+            user=choice(users),
+            status=choice(users_c.USER_GAME_COLLECTION_STATUSES)[0],
+        )
+
+
 if __name__ == "__main__":
     print("Creating data...")
     users = create_users()
@@ -141,4 +163,5 @@ if __name__ == "__main__":
     games = create_games(companies, genres)
     create_staffs(persons, movies, series)
     create_ratings(users, movies, series, games)
+    create_collections(users, movies, series, games)
     print("Done!")
