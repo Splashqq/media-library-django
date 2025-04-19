@@ -89,6 +89,7 @@ class UserMovieCollectionVS(
                 .prefetch_related(
                     "staff",
                     "genres",
+                    "videos__preview",
                     Prefetch(
                         "movie_staff",
                         queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -139,6 +140,7 @@ class UserSeriesCollectionVS(
                 .prefetch_related(
                     "staff",
                     "genres",
+                    "videos__preview",
                     Prefetch(
                         "series_staff",
                         queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -186,7 +188,7 @@ class UserGameCollectionVS(
                 "game",
                 queryset=catalog_m.Game.objects.all()
                 .select_related("poster", "company")
-                .prefetch_related("genres"),
+                .prefetch_related("genres", "videos__preview"),
             ),
         )
 
