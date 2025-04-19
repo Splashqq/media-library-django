@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework.routers import DefaultRouter
 
 import medialibrary.catalog.models as catalog_m
+import medialibrary.common.models as common_m
 import medialibrary.users.filters as users_f
 import medialibrary.users.models as users_m
 import medialibrary.users.serializers as users_s
@@ -87,9 +88,11 @@ class UserMovieCollectionVS(
                 queryset=catalog_m.Movie.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
-                    "staff",
                     "genres",
-                    "videos__preview",
+                    Prefetch(
+                        "videos",
+                        queryset=common_m.Video.objects.all().select_related("preview"),
+                    ),
                     Prefetch(
                         "movie_staff",
                         queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -138,9 +141,11 @@ class UserSeriesCollectionVS(
                 queryset=catalog_m.Series.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
-                    "staff",
                     "genres",
-                    "videos__preview",
+                    Prefetch(
+                        "videos",
+                        queryset=common_m.Video.objects.all().select_related("preview"),
+                    ),
                     Prefetch(
                         "series_staff",
                         queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -188,7 +193,13 @@ class UserGameCollectionVS(
                 "game",
                 queryset=catalog_m.Game.objects.all()
                 .select_related("poster", "company")
-                .prefetch_related("genres", "videos__preview"),
+                .prefetch_related(
+                    "genres",
+                    Prefetch(
+                        "videos",
+                        queryset=common_m.Video.objects.all().select_related("preview"),
+                    ),
+                ),
             ),
         )
 

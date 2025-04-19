@@ -7,6 +7,7 @@ from rest_framework.routers import DefaultRouter
 import medialibrary.catalog.filters as catalog_f
 import medialibrary.catalog.models as catalog_m
 import medialibrary.catalog.serializers as catalog_s
+import medialibrary.common.models as common_m
 from medialibrary.utils.base_views import BaseViewSet
 
 
@@ -47,9 +48,11 @@ class MovieVS(BaseViewSet):
             qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
-                "videos__preview",
-                "staff",
                 "genres",
+                Prefetch(
+                    "videos",
+                    queryset=common_m.Video.objects.all().select_related("preview"),
+                ),
                 Prefetch(
                     "movie_staff",
                     queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -80,10 +83,12 @@ class MovieRatingVS(
                 queryset=catalog_m.Movie.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
-                    "staff",
                     "photos",
-                    "videos__preview",
                     "genres",
+                    Prefetch(
+                        "videos",
+                        queryset=common_m.Video.objects.all().select_related("preview"),
+                    ),
                     Prefetch(
                         "movie_staff",
                         queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -126,9 +131,11 @@ class SeriesVS(BaseViewSet):
             qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
-                "videos__preview",
-                "staff",
                 "genres",
+                Prefetch(
+                    "videos",
+                    queryset=common_m.Video.objects.all().select_related("preview"),
+                ),
                 Prefetch(
                     "series_staff",
                     queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -159,9 +166,11 @@ class SeriesRatingVS(
                 queryset=catalog_m.Series.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
-                    "staff",
                     "genres",
-                    "videos__preview",
+                    Prefetch(
+                        "videos",
+                        queryset=common_m.Video.objects.all().select_related("preview"),
+                    ),
                     Prefetch(
                         "series_staff",
                         queryset=catalog_m.Staff.objects.all().select_related("person"),
@@ -213,7 +222,13 @@ class GameVS(BaseViewSet):
         return (
             qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
-            .prefetch_related("genres", "videos__preview")
+            .prefetch_related(
+                "genres",
+                Prefetch(
+                    "videos",
+                    queryset=common_m.Video.objects.all().select_related("preview"),
+                ),
+            )
         )
 
 
@@ -238,7 +253,13 @@ class GameRatingVS(
                 "game",
                 queryset=catalog_m.Game.objects.all()
                 .select_related("poster", "company")
-                .prefetch_related("genres", "videos__preview"),
+                .prefetch_related(
+                    "genres",
+                    Prefetch(
+                        "videos",
+                        queryset=common_m.Video.objects.all().select_related("preview"),
+                    ),
+                ),
             ),
         )
 
