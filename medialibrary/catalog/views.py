@@ -48,6 +48,7 @@ class MovieVS(BaseViewSet):
             qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
+                "photos",
                 "genres",
                 Prefetch(
                     "videos",
@@ -131,6 +132,7 @@ class SeriesVS(BaseViewSet):
             qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
+                "photos",
                 "genres",
                 Prefetch(
                     "videos",
@@ -166,6 +168,7 @@ class SeriesRatingVS(
                 queryset=catalog_m.Series.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
+                    "photos",
                     "genres",
                     Prefetch(
                         "videos",
@@ -223,6 +226,7 @@ class GameVS(BaseViewSet):
             qs.annotate(rating=Coalesce(Round(Avg("ratings__rating"), 2), 0.0))
             .select_related("poster", "company")
             .prefetch_related(
+                "photos",
                 "genres",
                 Prefetch(
                     "videos",
@@ -254,6 +258,7 @@ class GameRatingVS(
                 queryset=catalog_m.Game.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
+                    "photos",
                     "genres",
                     Prefetch(
                         "videos",

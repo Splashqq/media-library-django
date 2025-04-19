@@ -88,6 +88,7 @@ class UserMovieCollectionVS(
                 queryset=catalog_m.Movie.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
+                    "photos",
                     "genres",
                     Prefetch(
                         "videos",
@@ -141,6 +142,7 @@ class UserSeriesCollectionVS(
                 queryset=catalog_m.Series.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
+                    "photos",
                     "genres",
                     Prefetch(
                         "videos",
@@ -194,6 +196,7 @@ class UserGameCollectionVS(
                 queryset=catalog_m.Game.objects.all()
                 .select_related("poster", "company")
                 .prefetch_related(
+                    "photos",
                     "genres",
                     Prefetch(
                         "videos",
