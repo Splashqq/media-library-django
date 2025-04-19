@@ -37,6 +37,8 @@ class MovieSerializer(serializers.ModelSerializer):
     poster = ReadablePKRF(common_s.PhotoSerializer)
     movie_staff = StaffSerializer(many=True, read_only=True)
     rating = serializers.FloatField(read_only=True)
+    videos = common_s.VideoSerializer(many=True, read_only=True)
+    photos = common_s.PhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = catalog_m.Movie
@@ -58,6 +60,8 @@ class SeriesSerializer(serializers.ModelSerializer):
     poster = ReadablePKRF(common_s.PhotoSerializer)
     series_staff = StaffSerializer(many=True, read_only=True)
     rating = serializers.FloatField(read_only=True)
+    videos = common_s.VideoSerializer(many=True, read_only=True)
+    photos = common_s.PhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = catalog_m.Series
@@ -78,6 +82,8 @@ class GameSerializer(serializers.ModelSerializer):
     company = ReadablePKRF(CompanySerializer)
     poster = ReadablePKRF(common_s.PhotoSerializer)
     rating = serializers.FloatField(read_only=True)
+    videos = common_s.VideoSerializer(many=True, read_only=True)
+    photos = common_s.PhotoSerializer(many=True, read_only=True)
 
     class Meta:
         model = catalog_m.Game

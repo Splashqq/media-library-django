@@ -16,7 +16,18 @@ class PhotoVS(BaseViewSet):
     }
 
 
+class VideoVS(BaseViewSet):
+    queryset = common_m.Video.objects.all()
+    serializer_class = common_s.VideoSerializer
+
+    action_permissions = {
+        "list": permissions.AllowAny,
+        "retrieve": permissions.AllowAny,
+    }
+
+
 router = DefaultRouter()
 router.register("photo", PhotoVS)
+router.register("video", VideoVS)
 
 common_urls = router.urls
