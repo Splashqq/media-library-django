@@ -31,5 +31,8 @@ services:
       - "8001:5432"
     volumes:
       - local_postgres_data:/var/lib/postgresql/data
+      - type: bind
+        source: ./dumps/
+        target: /opt/dumps/
     env_file:
       - .env
