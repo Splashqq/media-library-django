@@ -2,6 +2,7 @@ import os
 import sys
 
 import environ
+from celery.schedules import crontab
 
 ROOT_DIR = environ.Path(__file__) - 3
 APPS_DIR = ROOT_DIR.path("medialibrary")
@@ -161,4 +162,14 @@ AWS_S3_REGION_NAME = "eu-central-1"
 
 AWS_S3_OBJECT_PARAMETERS = {
     "CacheControl": "public, max-age=31536000, immutable",
+}
+
+CELERY_BROKER_URL = "redis://redis:6379"
+CELERY_RESULT_BACKEND = "redis://redis:6379"
+
+CELERY_BEAT_SCHEDULE = {
+    "fetch_movies": {
+        "task": "medialibrary.catalog.tasks.fetch_movies",
+        "schedule": crontab(hour=8, minute=0),
+    },
 }

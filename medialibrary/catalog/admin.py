@@ -15,10 +15,20 @@ class PersonAdmin(admin.ModelAdmin):
     readonly_fields = ["created_at", "updated_at"]
 
 
+@admin.register(catalog_m.StaffRole)
+class StaffRoleAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+    readonly_fields = ["created_at", "updated_at"]
+
+
 @admin.register(catalog_m.Staff)
 class StaffAdmin(admin.ModelAdmin):
     list_display = ["person", "movie", "series", "role"]
     readonly_fields = ["created_at", "updated_at"]
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.prefetch_related("role", "movie")
 
 
 @admin.register(catalog_m.Movie)

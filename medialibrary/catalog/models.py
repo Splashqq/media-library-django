@@ -1,11 +1,13 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+from django.db.models import TextField
 
 import medialibrary.catalog.constants as catalog_c
 from medialibrary.utils.models import TimeStampedModel
 
 
 class Person(TimeStampedModel):
+    imdb_id = TextField(null=True, blank=True, unique=True)
     name = models.TextField()
 
     class Meta:
@@ -16,7 +18,19 @@ class Person(TimeStampedModel):
         return f"{self.name}"
 
 
+class StaffRole(TimeStampedModel):
+    name = TextField(null=True, blank=True, unique=True)
+
+    class Meta:
+        verbose_name = "Staff Role"
+        verbose_name_plural = "Staff Roles"
+
+    def __str__(self):
+        return f"{self.name}"
+
+
 class Staff(TimeStampedModel):
+    imdb_id = TextField(null=True, blank=True, unique=True)
     person = models.ForeignKey(
         "catalog.Person",
         on_delete=models.CASCADE,
@@ -24,19 +38,19 @@ class Staff(TimeStampedModel):
     )
     movie = models.ForeignKey(
         "catalog.Movie",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="movie_staff",
         null=True,
         blank=True,
     )
     series = models.ForeignKey(
         "catalog.Series",
-        on_delete=models.SET_NULL,
+        on_delete=models.CASCADE,
         related_name="series_staff",
         null=True,
         blank=True,
     )
-    role = models.IntegerField(choices=catalog_c.STAFF_ROLES)
+    role = models.ForeignKey("catalog.StaffRole", on_delete=models.SET_NULL, null=True)
 
     class Meta:
         verbose_name = "Staff"
@@ -78,6 +92,7 @@ class MediaGenre(TimeStampedModel):
 
 
 class Movie(TimeStampedModel):
+    imdb_id = TextField(blank=True, null=True, unique=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
     release_date = models.DateField(blank=True, null=True)
