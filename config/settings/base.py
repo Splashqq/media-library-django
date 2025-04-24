@@ -170,6 +170,6 @@ CELERY_RESULT_BACKEND = "redis://redis:6379"
 CELERY_BEAT_SCHEDULE = {
     "fetch_movies": {
         "task": "medialibrary.catalog.tasks.fetch_movies",
-        "schedule": crontab(hour=8, minute=0),
+        "schedule": crontab(hour=23, minute=18),
     },
 }
