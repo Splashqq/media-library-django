@@ -1,13 +1,12 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
-from django.db.models import TextField
 
 import medialibrary.catalog.constants as catalog_c
 from medialibrary.utils.models import TimeStampedModel
 
 
 class Person(TimeStampedModel):
-    imdb_id = TextField(null=True, blank=True, unique=True)
+    imdb_id = models.TextField(null=True, blank=True, unique=True)
     name = models.TextField()
 
     class Meta:
@@ -19,7 +18,7 @@ class Person(TimeStampedModel):
 
 
 class StaffRole(TimeStampedModel):
-    name = TextField(null=True, blank=True, unique=True)
+    name = models.TextField(null=True, blank=True, unique=True)
 
     class Meta:
         verbose_name = "Staff Role"
@@ -30,7 +29,7 @@ class StaffRole(TimeStampedModel):
 
 
 class Staff(TimeStampedModel):
-    imdb_id = TextField(null=True, blank=True, unique=True)
+    imdb_id = models.TextField(null=True, blank=True, unique=True)
     person = models.ForeignKey(
         "catalog.Person",
         on_delete=models.CASCADE,
@@ -92,7 +91,7 @@ class MediaGenre(TimeStampedModel):
 
 
 class Movie(TimeStampedModel):
-    imdb_id = TextField(blank=True, null=True, unique=True)
+    imdb_id = models.TextField(blank=True, null=True, unique=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
     release_date = models.DateField(blank=True, null=True)
