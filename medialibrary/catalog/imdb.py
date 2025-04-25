@@ -189,57 +189,61 @@ def update_or_create_movies(movies_data):
         if name not in existing_roles
     ]
 
-    staff_to_create = []
-    for m in movies_data:
-        movie = existing_movies.get(m["imdb_id"])
-        if movie and m.get("staff"):
-            current_staff = set(
-                catalog_m.Staff.objects.filter(movie=movie).values_list(
-                    "person__imdb_id", "role__name"
-                )
-            )
-            for s in m["staff"]:
-                if (
-                    s.get("imdb_id")
-                    and s["imdb_id"] in existing_persons
-                    and s["role"] in existing_roles
-                    and (s["imdb_id"], s["role"]) not in current_staff
-                ):
-                    staff_to_create.append(
-                        catalog_m.Staff(
-                            person=existing_persons[s["imdb_id"]],
-                            movie=movie,
-                            role=existing_roles[s["role"]],
-                        )
-                    )
-
     with transaction.atomic():
         if new_genres:
             catalog_m.MediaGenre.objects.bulk_create(new_genres)
+            genres_map.update({g.name: g for g in new_genres})
+
         if new_roles:
             catalog_m.StaffRole.objects.bulk_create(new_roles)
+            existing_roles.update({r.name: r for r in new_roles})
+
         if persons_to_create:
-            catalog_m.Person.objects.bulk_create(
-                persons_to_create, ignore_conflicts=True
+            catalog_m.Person.objects.bulk_create(persons_to_create)
+            existing_persons.update(
+                {
+                    p.imdb_id: p
+                    for p in catalog_m.Person.objects.filter(
+                        imdb_id__in=[p.imdb_id for p in persons_to_create]
+                    )
+                }
             )
+
         if movies_to_create:
-            catalog_m.Movie.objects.bulk_create(movies_to_create)
+            created_movies = catalog_m.Movie.objects.bulk_create(movies_to_create)
+            existing_movies.update({m.imdb_id: m for m in created_movies})
+
         if movies_to_update:
             catalog_m.Movie.objects.bulk_update(
                 movies_to_update, fields=["title", "duration"]
             )
+
+        staff_to_create = []
+        for m in movies_data:
+            movie = existing_movies.get(m["imdb_id"])
+            if movie and m.get("staff"):
+                current_staff = set(
+                    catalog_m.Staff.objects.filter(movie=movie).values_list(
+                        "person__imdb_id", "role__name"
+                    )
+                )
+                for s in m["staff"]:
+                    if (
+                        s.get("imdb_id")
+                        and s["imdb_id"] in existing_persons
+                        and s["role"] in existing_roles
+                        and (s["imdb_id"], s["role"]) not in current_staff
+                    ):
+                        staff_to_create.append(
+                            catalog_m.Staff(
+                                person=existing_persons[s["imdb_id"]],
+                                movie=movie,
+                                role=existing_roles[s["role"]],
+                            )
+                        )
+
         if staff_to_create:
             catalog_m.Staff.objects.bulk_create(staff_to_create)
-
-    if new_genres:
-        genres_map.update(
-            {
-                g.name: g
-                for g in catalog_m.MediaGenre.objects.filter(
-                    name__in=[g.name for g in new_genres]
-                )
-            }
-        )
 
     for m in movies_data:
         movie = existing_movies.get(m["imdb_id"])

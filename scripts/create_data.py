@@ -102,17 +102,27 @@ def create_games(companies, genres):
     return games
 
 
-def create_staffs(persons, movies, series):
+def create_staff_roles():
+    staff_roles = []
+    for i in range(1, 5):
+        r, _ = catalog_m.StaffRole.objects.get_or_create(
+            name=f"staff_role{i}",
+        )
+        staff_roles.append(r)
+    return staff_roles
+
+
+def create_staffs(persons, movies, series, staff_roles):
     for person in persons:
         catalog_m.Staff.objects.create(
             person=person,
             movie=choice(movies),
-            role=choice(catalog_c.STAFF_ROLES)[0],
+            role=choice(staff_roles),
         )
         catalog_m.Staff.objects.create(
             person=person,
             series=choice(series),
-            role=choice(catalog_c.STAFF_ROLES)[0],
+            role=choice(staff_roles),
         )
 
 
@@ -161,7 +171,8 @@ if __name__ == "__main__":
     movies = create_movies(companies, genres)
     series = create_series(companies, genres)
     games = create_games(companies, genres)
-    create_staffs(persons, movies, series)
+    staff_roles = create_staff_roles()
+    create_staffs(persons, movies, series, staff_roles)
     create_ratings(users, movies, series, games)
     create_collections(users, movies, series, games)
     print("Done!")
