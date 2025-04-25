@@ -173,3 +173,15 @@ CELERY_BEAT_SCHEDULE = {
         "schedule": crontab(hour=9, minute=0),
     },
 }
+
+EMAIL_BACKEND = env(
+    "DJANGO_EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_SUBJECT_PREFIX = env("DJANGO_EMAIL_SUBJECT_PREFIX", default="")
+SERVER_EMAIL = env("DJANGO_SERVER_EMAIL", default="")
+EMAIL_HOST = env("DJANGO_SMTP_HOST", default="")
+EMAIL_HOST_USER = env("DJANGO_SMTP_USER", default="")
+DEFAULT_FROM_EMAIL = env("DJANGO_FROM_EMAIL", default=EMAIL_HOST_USER)
+EMAIL_HOST_PASSWORD = env("DJANGO_SMTP_PASSWORD", default="")
+EMAIL_PORT = env("DJANGO_SMTP_PORT", default=587)
+EMAIL_USE_TLS = True

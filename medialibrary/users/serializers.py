@@ -44,6 +44,40 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         return user
 
 
+class UserChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField(write_only=True)
+    new_password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data["new_password"] != data["confirm_password"]:
+            raise serializers.ValidationError(
+                {"confirm_password": "Passwords must match."}
+            )
+
+        if data["new_password"] == data["old_password"]:
+            raise serializers.ValidationError(
+                {"new_password": "The new password is the same as the old one."}
+            )
+
+        if not self.context["user"].check_password(data["old_password"]):
+            raise serializers.ValidationError(
+                {"old_password": "Old password is incorrect."}
+            )
+        return data
+
+
+class UserRequestPasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate(self, data):
+        if not users_m.User.objects.filter(email=data["email"]).exists():
+            raise serializers.ValidationError(
+                {"email": "A user with this email not exists."}
+            )
+        return data
+
+
 class UserMovieCollectionSerializer(serializers.ModelSerializer):
     movie = ReadablePKRF(catalog_s.MovieSerializer)
 

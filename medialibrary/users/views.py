@@ -1,6 +1,12 @@
+import uuid
+
 from django.contrib.auth import authenticate
+from django.core.cache import cache
 from django.db.models import Prefetch
 from django.utils import timezone
+from django.utils.crypto import get_random_string
+from django.utils.decorators import method_decorator
+from django_ratelimit.decorators import ratelimit
 from rest_framework import mixins, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -13,7 +19,10 @@ import medialibrary.common.models as common_m
 import medialibrary.users.filters as users_f
 import medialibrary.users.models as users_m
 import medialibrary.users.serializers as users_s
+from medialibrary.users.mailer import Mailer
 from medialibrary.utils.base_views import BaseViewSet
+
+MAILER = Mailer()
 
 
 class UserVS(mixins.UpdateModelMixin, BaseViewSet):
@@ -23,6 +32,8 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
     action_permissions = {
         "login": permissions.AllowAny,
         "register": permissions.AllowAny,
+        "reset_password": permissions.AllowAny,
+        "reset_password_confirm": permissions.AllowAny,
     }
 
     def get_serializer_class(self):
@@ -30,6 +41,10 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
             return users_s.UserLoginSerializer
         elif self.action == "register":
             return users_s.UserRegisterSerializer
+        elif self.action == "change_password":
+            return users_s.UserChangePasswordSerializer
+        elif self.action == "reset_password":
+            return users_s.UserRequestPasswordResetSerializer
         return super().get_serializer_class()
 
     @action(detail=False, methods=["post"])
@@ -59,6 +74,72 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
         Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
         return Response({"token": token.key})
+
+    @action(detail=False, methods=["post"])
+    def change_password(self, request):
+        serializer = self.get_serializer_class()(
+            data=request.data, context={"user": request.user}
+        )
+        serializer.is_valid(raise_exception=True)
+        user = request.user
+
+        user.set_password(serializer.validated_data["new_password"])
+        user.save()
+        return Response(
+            {"detail": "Password changed successfully"}, status=status.HTTP_200_OK
+        )
+
+    @method_decorator(ratelimit(key="ip", rate="1/10m", method="POST"))
+    @action(detail=False, methods=["post"])
+    def reset_password(self, request):
+        serializer = self.get_serializer_class()(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data["email"]
+        user = users_m.User.objects.get(email=email)
+
+        token = uuid.uuid4()
+        temp_password = get_random_string(10)
+
+        cache_data = {
+            "user_id": user.id,
+            "temp_password": temp_password,
+            "email": email,
+        }
+        cache.set(f"password_reset_{token}", cache_data, timeout=600)
+
+        reset_url = UserVS.reverse_action(
+            self, url_name="password-reset-confirm", kwargs={"token": str(token)}
+        )
+
+        MAILER.send_password_reset_message(user.email, reset_url, email, temp_password)
+        return Response({"detail": "Message sent"})
+
+    @action(
+        detail=False,
+        methods=["get"],
+        url_path="password-reset-confirm/(?P<token>[0-9a-fA-F-]+)",
+        url_name="password-reset-confirm",
+    )
+    def reset_password_confirm(self, request, token=None):
+        if not token:
+            return Response({"error": "Token is required"}, status=400)
+
+        cache_key = f"password_reset_{token}"
+        cache_data = cache.get(cache_key)
+
+        if cache_data is None:
+            return Response({"error": "Invalid or expired token"}, status=400)
+
+        try:
+            user = users_m.User.objects.get(id=cache_data["user_id"])
+        except users_m.User.DoesNotExist:
+            return Response({"error": "User not found"}, status=404)
+
+        user.set_password(cache_data["temp_password"])
+        user.save()
+
+        cache.delete(cache_key)
+        return Response({"detail": "Password was changed"}, status=200)
 
     def perform_update(self, serializer):
         if serializer.instance != self.request.user:
