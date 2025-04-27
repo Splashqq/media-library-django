@@ -1,0 +1,23 @@
+name: Test
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Make scripts
+        run: chmod +x manage.py;chmod +x start
+
+      - name: Build docker image
+        run: |
+          docker compose -f docker-compose.ci.yml up -d
+      - name: Test
+        run: |
+          docker compose -f docker-compose.ci.yml exec django ./manage.py test

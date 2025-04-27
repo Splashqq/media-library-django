@@ -1,0 +1,27 @@
+version: '3'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: ml_django
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    env_file:
+      - .env.ci
+    command: /app/start
+
+  postgres:
+    image: postgres
+    container_name: ml_postgres
+    healthcheck:
+      test: pg_isready
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    env_file:
+      - .env.ci
