@@ -12,7 +12,7 @@ services:
     volumes:
       - .:/app
     env_file:
-      - ./compose/.env.ci
+      - .env.ci
     command: /app/start
 
   postgres:
@@ -24,4 +24,4 @@ services:
       timeout: 5s
       retries: 5
     env_file:
-      - ./compose/.env.ci
+      - .env.ci
