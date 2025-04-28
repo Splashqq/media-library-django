@@ -1,0 +1,21 @@
+from .base import *  # noqa
+
+DEBUG = env.bool("DJANGO_DEBUG", default=False)
+SECURE_HSTS_SECONDS = 60
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env.bool(
+    "DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS", default=True
+)
+SECURE_CONTENT_TYPE_NOSNIFF = env.bool(
+    "DJANGO_SECURE_CONTENT_TYPE_NOSNIFF", default=True
+)
+SECURE_BROWSER_XSS_FILTER = True
+SESSION_COOKIE_SECURE = True
+SESSION_COOKIE_HTTPONLY = True
+SECURE_SSL_REDIRECT = env.bool("DJANGO_SECURE_SSL_REDIRECT", default=True)
+CSRF_COOKIE_SECURE = True
+CSRF_COOKIE_HTTPONLY = False
+X_FRAME_OPTIONS = "DENY"
+
+CSRF_TRUSTED_ORIGINS = ["https://media-library-django.onrender.com/"]
+
+ALLOWED_HOSTS = [".media-library-django.onrender.com"]
