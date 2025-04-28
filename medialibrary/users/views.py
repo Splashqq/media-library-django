@@ -57,14 +57,12 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
     @extend_schema(
         summary="User authentication",
         description="""
-        Endpoint for user login.
         Returns an authentication token and user data upon successful authentication.
-        Invalid credentials will return a 401 Unauthorized response.
         """,
         examples=[
             OpenApiExample(
                 "Successful request example",
-                value={"email": "user@example.com", "password": "securepassword123"},
+                value={"email": "user@example.com", "password": "password"},
                 request_only=True,
             ),
             OpenApiExample(
@@ -72,9 +70,9 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
                 value={
                     "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b",
                     "user": {
-                        "id": 1,
                         "email": "user@example.com",
-                        "username": "johndoe",
+                        "username": "user",
+                        "avatar": 1,
                     },
                 },
                 response_only=True,
@@ -135,15 +133,15 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
 
     @extend_schema(
         summary="Register new user",
-        description="""Creates a new user account and returns an authentication token.
-        Required fields depend on your UserSerializer implementation.""",
+        description="""Creates a new user account and returns an authentication token.""",
         examples=[
             OpenApiExample(
                 "Registration Request Example",
                 value={
                     "email": "user@example.com",
-                    "password": "securepassword123",
-                    # other required fields
+                    "username": "user",
+                    "password1": "password",
+                    "password2": "password",
                 },
                 request_only=True,
             ),
@@ -178,14 +176,14 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
 
     @extend_schema(
         summary="Change password",
-        description="""Allows authenticated users to change their password.
-        Requires current password for verification.""",
+        description="""Allows authenticated users to change their password.""",
         examples=[
             OpenApiExample(
                 "Request Example",
                 value={
-                    "current_password": "oldpassword123",
-                    "new_password": "newsecurepassword456",
+                    "old_password": "password",
+                    "new_password": "password",
+                    "current_password": "newpassword",
                 },
                 request_only=True,
             ),
@@ -203,8 +201,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
                     OpenApiExample(
                         "Error",
                         value={
-                            "current_password": ["Incorrect password"],
-                            "new_password": ["This password is too common."],
+                            "confirm_password": ["Passwords must match."],
                         },
                     )
                 ],
