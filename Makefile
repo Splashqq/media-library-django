@@ -25,3 +25,6 @@ load:
 	docker compose exec postgres createdb medialibrary -U medialibrary
 	docker compose exec postgres sh -c 'gunzip -c $(DUMP_FILE) | pg_restore -U medialibrary -d medialibrary'
 	docker compose start django
+
+create_data:
+	docker compose exec django python scripts/create_data.py

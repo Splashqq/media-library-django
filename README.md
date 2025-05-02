@@ -25,6 +25,14 @@ A RESTful media management platform built with Django REST Framework that allows
 - Nginx (production)
 - Gunicorn (production)
 
+## Database Structure
+
+View interactive database schema: [dbdiagram.io link](https://dbdiagram.io/d/681529731ca52373f5424dbf)
+
+## Access the Deployed Project
+
+The project is deployed and accessible at: https://splashqq9.fvds.ru/docs/
+
 ## How to Run the Project Locally
 
 ### Setup Instructions
@@ -39,7 +47,3 @@ A RESTful media management platform built with Django REST Framework that allows
 4. Once running, the project will be available at:
    - API: http://localhost:8000/api/
    - Django Admin: http://localhost:8000/admin/
-
-## Access the Deployed Project
-
-The project is deployed and accessible at: https://splashqq9.fvds.ru/docs/

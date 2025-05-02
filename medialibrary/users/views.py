@@ -7,13 +7,6 @@ from django.utils import timezone
 from django.utils.crypto import get_random_string
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
-from drf_spectacular.types import OpenApiTypes
-from drf_spectacular.utils import (
-    OpenApiExample,
-    OpenApiParameter,
-    OpenApiResponse,
-    extend_schema,
-)
 from rest_framework import mixins, permissions, status
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import action
@@ -26,6 +19,13 @@ import medialibrary.common.models as common_m
 import medialibrary.users.filters as users_f
 import medialibrary.users.models as users_m
 import medialibrary.users.serializers as users_s
+from medialibrary.users.docs import (
+    change_password_extend_schema,
+    login_extend_schema,
+    register_extend_schema,
+    reset_password_confirm_extend_schema,
+    reset_password_extend_schema,
+)
 from medialibrary.users.mailer import Mailer
 from medialibrary.utils.base_views import BaseViewSet
 
@@ -54,64 +54,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
             return users_s.UserRequestPasswordResetSerializer
         return super().get_serializer_class()
 
-    @extend_schema(
-        summary="User authentication",
-        description="""
-        Returns an authentication token and user data upon successful authentication.
-        """,
-        examples=[
-            OpenApiExample(
-                "Successful request example",
-                value={"email": "user@example.com", "password": "password"},
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Successful response example",
-                value={
-                    "token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b",
-                    "user": {
-                        "email": "user@example.com",
-                        "username": "user",
-                        "avatar": 1,
-                    },
-                },
-                response_only=True,
-                status_codes=["200"],
-            ),
-            OpenApiExample(
-                "Authentication failure example",
-                value={"detail": "Invalid credentials"},
-                response_only=True,
-                status_codes=["401"],
-            ),
-        ],
-        responses={
-            200: OpenApiResponse(
-                description="Authentication successful",
-                response=users_s.UserSerializer,
-            ),
-            400: OpenApiResponse(
-                description="Invalid input data",
-                examples=[
-                    OpenApiExample(
-                        "Validation error example",
-                        value={
-                            "email": ["This field is required."],
-                            "password": ["This field is required."],
-                        },
-                    )
-                ],
-            ),
-            401: OpenApiResponse(
-                description="Invalid credentials",
-                examples=[
-                    OpenApiExample(
-                        "Error example", value={"detail": "Invalid credentials"}
-                    )
-                ],
-            ),
-        },
-    )
+    @login_extend_schema
     @action(detail=False, methods=["post"])
     def login(self, request):
         serializer = self.get_serializer_class()(data=request.data)
@@ -131,86 +74,16 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
         user_serializer = users_s.UserSerializer(user)
         return Response({"token": token.key, "user": user_serializer.data})
 
-    @extend_schema(
-        summary="Register new user",
-        description="""Creates a new user account and returns an authentication token.""",
-        examples=[
-            OpenApiExample(
-                "Registration Request Example",
-                value={
-                    "email": "user@example.com",
-                    "username": "user",
-                    "password1": "password",
-                    "password2": "password",
-                },
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Success Response Example",
-                value={"token": "9944b09199c62bcf9418ad846dd0e4bbdfc6ee4b"},
-                response_only=True,
-            ),
-        ],
-        responses={
-            201: OpenApiResponse(
-                description="User created successfully", response=OpenApiTypes.OBJECT
-            ),
-            400: OpenApiResponse(
-                description="Validation error",
-                examples=[
-                    OpenApiExample(
-                        "Error", value={"email": ["This field is required."]}
-                    )
-                ],
-            ),
-        },
-    )
+    @register_extend_schema
     @action(detail=False, methods=["post"])
     def register(self, request):
         serializer = self.get_serializer_class()(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        Token.objects.filter(user=user).delete()
         token = Token.objects.create(user=user)
         return Response({"token": token.key})
 
-    @extend_schema(
-        summary="Change password",
-        description="""Allows authenticated users to change their password.""",
-        examples=[
-            OpenApiExample(
-                "Request Example",
-                value={
-                    "old_password": "password",
-                    "new_password": "password",
-                    "current_password": "newpassword",
-                },
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Success Response",
-                value={"detail": "Password changed successfully"},
-                response_only=True,
-            ),
-        ],
-        responses={
-            200: OpenApiResponse(description="Password changed successfully"),
-            400: OpenApiResponse(
-                description="Validation error",
-                examples=[
-                    OpenApiExample(
-                        "Error",
-                        value={
-                            "confirm_password": ["Passwords must match."],
-                        },
-                    )
-                ],
-            ),
-            401: OpenApiResponse(
-                description="Authentication credentials were not provided"
-            ),
-        },
-    )
+    @change_password_extend_schema
     @action(detail=False, methods=["post"])
     def change_password(self, request):
         serializer = self.get_serializer_class()(
@@ -225,34 +98,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
             {"detail": "Password changed successfully"}, status=status.HTTP_200_OK
         )
 
-    @extend_schema(
-        summary="Request password reset",
-        description="""Initiates password reset process.
-        Sends a reset link to the provided email address.
-        Rate limited to 1 request per 10 minutes per IP address.""",
-        examples=[
-            OpenApiExample(
-                "Request Example",
-                value={"email": "user@example.com"},
-                request_only=True,
-            ),
-            OpenApiExample(
-                "Success Response", value={"detail": "Message sent"}, response_only=True
-            ),
-        ],
-        responses={
-            200: OpenApiResponse(description="Reset email sent if account exists"),
-            400: OpenApiResponse(
-                description="Validation error",
-                examples=[
-                    OpenApiExample(
-                        "Error", value={"email": ["Enter a valid email address."]}
-                    )
-                ],
-            ),
-            403: OpenApiResponse(description="Too many requests (rate limited)"),
-        },
-    )
+    @reset_password_extend_schema
     @method_decorator(ratelimit(key="ip", rate="1/10m", method="POST"))
     @action(detail=False, methods=["post"])
     def reset_password(self, request):
@@ -269,7 +115,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
             "temp_password": temp_password,
             "email": email,
         }
-        cache.set(f"password_reset_{token}", cache_data, timeout=600)
+        cache.set(f"password_reset_{token}", cache_data, timeout=60 * 10)  # 10 min
 
         reset_url = UserVS.reverse_action(
             self, url_name="password-reset-confirm", kwargs={"token": str(token)}
@@ -278,35 +124,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
         MAILER.send_password_reset_message(user.email, reset_url, email, temp_password)
         return Response({"detail": "Message sent"})
 
-    @extend_schema(
-        summary="Confirm password reset",
-        description="""Finalizes password reset process using the token from email.
-        This is typically accessed via link in the password reset email.""",
-        parameters=[
-            OpenApiParameter(
-                name="token",
-                type=OpenApiTypes.UUID,
-                location=OpenApiParameter.PATH,
-                description="Reset token from email",
-            )
-        ],
-        responses={
-            200: OpenApiResponse(description="Password was changed successfully"),
-            400: OpenApiResponse(
-                description="Invalid request",
-                examples=[
-                    OpenApiExample("Error", value={"error": "Token is required"}),
-                    OpenApiExample(
-                        "Error", value={"error": "Invalid or expired token"}
-                    ),
-                ],
-            ),
-            404: OpenApiResponse(
-                description="Not found",
-                examples=[OpenApiExample("Error", value={"error": "User not found"})],
-            ),
-        },
-    )
+    @reset_password_confirm_extend_schema
     @action(
         detail=False,
         methods=["get"],
@@ -315,24 +133,31 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
     )
     def reset_password_confirm(self, request, token=None):
         if not token:
-            return Response({"error": "Token is required"}, status=400)
+            return Response(
+                {"error": "Token is required"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         cache_key = f"password_reset_{token}"
         cache_data = cache.get(cache_key)
 
         if cache_data is None:
-            return Response({"error": "Invalid or expired token"}, status=400)
+            return Response(
+                {"error": "Invalid or expired token"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         try:
             user = users_m.User.objects.get(id=cache_data["user_id"])
         except users_m.User.DoesNotExist:
-            return Response({"error": "User not found"}, status=404)
+            return Response(
+                {"error": "User not found"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         user.set_password(cache_data["temp_password"])
         user.save()
 
         cache.delete(cache_key)
-        return Response({"detail": "Password was changed"}, status=200)
+        return Response({"detail": "Password was changed"}, status=status.HTTP_200_OK)
 
     def perform_update(self, serializer):
         if serializer.instance != self.request.user:
