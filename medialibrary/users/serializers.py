@@ -8,7 +8,7 @@ from medialibrary.utils.drf import ReadablePKRF
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = users_m.User
-        fields = ("email", "username", "avatar")
+        fields = ("username", "avatar")
         read_only_fields = ("email",)
 
 

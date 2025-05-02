@@ -36,8 +36,6 @@ DJANGO_APPS = [
     "django.contrib.sites",
 ]
 
-SITE_ID = 1
-
 THIRD_PARTY_APPS = [
     "rest_framework",
     "rest_framework.authtoken",
@@ -48,6 +46,8 @@ THIRD_PARTY_APPS = [
 LOCAL_APPS = ["medialibrary.catalog", "medialibrary.common", "medialibrary.users"]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
+
+SITE_ID = 1
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -137,14 +137,11 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_ROOT = env("DJANGO_STATIC_ROOT", default=str(ROOT_DIR("staticfiles")))
-STATIC_URL = "/collected_static/"
+STATIC_URL = "/static/"
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
 ]
-
-
-STATIC_URL = "static/"
 
 STATICFILES_DIRS = (os.path.join(ROOT_DIR, "static"),)
 

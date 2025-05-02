@@ -7,7 +7,8 @@ logger = logging.getLogger(__name__)
 
 
 class Mailer:
-    def _render_template(self, template_name, **kwargs):
+    @staticmethod
+    def _render_template(template_name, **kwargs):
         text_content = render_to_string(
             template_name,
             context=kwargs,
