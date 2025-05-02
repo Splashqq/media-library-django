@@ -134,7 +134,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
     def reset_password_confirm(self, request, token=None):
         if not token:
             return Response(
-                {"error": "Token is required"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Token is required"}, status=status.HTTP_404_NOT_FOUND
             )
 
         cache_key = f"password_reset_{token}"
@@ -142,7 +142,7 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
 
         if cache_data is None:
             return Response(
-                {"error": "Invalid or expired token"}, status=status.HTTP_404_NOT_FOUND
+                {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         try:
