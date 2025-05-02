@@ -142,7 +142,8 @@ class UserVS(mixins.UpdateModelMixin, BaseViewSet):
 
         if cache_data is None:
             return Response(
-                {"error": "Invalid or expired token"}, status=status.HTTP_400_BAD_REQUEST
+                {"error": "Invalid or expired token"},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         try:
